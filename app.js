@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const morgan = require('morgan');
 const bodyParser = require('body-parser');
 
 const rotaProdutos = require('./routes/produtos');
@@ -23,6 +24,8 @@ app.use((req,res, next) => {
     next();
 });
 
+app.use(morgan('dev'));
+app.use('/uploads', express.static('uploads'));
 app.use('/produtos', rotaProdutos);
 app.use('/pedidos', rotaPedidos);
 
