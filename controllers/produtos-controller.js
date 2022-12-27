@@ -1,38 +1,64 @@
-const mysql  = require('../mysql').pool;
+const mysql  = require('../mysql');
 
-exports.getProduto = (req, res, next) => {
-    mysql.getConnection((error, conn) => {
-        if(error) { return res.status(500).send({error: error})};
-
-        conn.query(
-            'SELECT * FROM PRODUTOS;',
-            (error, result, fields) => {
-                if(error) { return res.status(500).send({error: error})};
-                const response = {
-                    quantidade: result.length,
-                    produtos: result.map(prod => {
-                        return {
-                            id_produto: prod.id_Produto,
-                            nome: prod.nome,
-                            preco: prod.preco,
-                            imagem_produto: prod.imagem_produto,
-                            request: {
-                                tipo: 'GET',
-                                descricao: 'Retorna os detalhes de um produto específico',
-                                url: 'http://localhost:3000/produtos/' + prod.id_Produto
-                            }
-                        }
-                    })
+exports.getProduto = async (req, res, next) => {
+    try {
+        const result = await mysql.execute('SELECT * FROM PRODUTOS;')
+        const response = {
+            quantidade: result.length,
+            produtos: result.map(prod => {
+                return {
+                    id_produto: prod.id_Produto,
+                    nome: prod.nome,
+                    preco: prod.preco,
+                    imagem_produto: prod.imagem_produto,
+                    request: {
+                        tipo: 'GET',
+                        descricao: 'Retorna os detalhes de um produto específico',
+                        url: 'http://localhost:3000/produtos/' + prod.id_Produto
+                    }
                 }
-                return res.status(200).send({response})
-            }
-        );
-    });
+            })
+        }
+        return res.status(200).send({response});
+    } catch (error) {
+        return res.status(500).send({error: error})
+    }
 };
+
+// exports.getProduto = (req, res, next) => {
+//     mysql.getConnection((error, conn) => {
+//         if(error) { return res.status(500).send({error: error})};
+
+//         conn.query(
+//             'SELECT * FROM PRODUTOS;',
+//             (error, result, fields) => {
+//                 if(error) { return res.status(500).send({error: error})};
+//                 const response = {
+//                     quantidade: result.length,
+//                     produtos: result.map(prod => {
+//                         return {
+//                             id_produto: prod.id_Produto,
+//                             nome: prod.nome,
+//                             preco: prod.preco,
+//                             imagem_produto: prod.imagem_produto,
+//                             request: {
+//                                 tipo: 'GET',
+//                                 descricao: 'Retorna os detalhes de um produto específico',
+//                                 url: 'http://localhost:3000/produtos/' + prod.id_Produto
+//                             }
+//                         }
+//                     })
+//                 }
+//                 return res.status(200).send({response})
+//             }
+//         );
+//     });
+// };
 
 exports.postProduto = (req, res, next) => {
     console.log(req.usuario);
     mysql.getConnection((error, conn) => {
+        conn.release();
         if(error) { return res.status(500).send({error: error})};
         conn.query(
             'INSERT INTO produtos (nome, preco, imagem_produto) VALUES (?, ?, ?)',
